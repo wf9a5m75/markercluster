@@ -14,10 +14,10 @@ function Cluster(id) {
     writable: false
   });
   
-  self.addMarker = function(marker) {
+  self.addMarker = function(options) {
     cordova.exec(function() {
     }, function() {
-    }, PLUGIN_NAME, "exec", ["MarkerCluster.addMarker", id, marker.getId()]);
+    }, PLUGIN_NAME, "exec", ["MarkerCluster.addMarkerJson", id, options]);
   };
   self.refresh = function() {
     cordova.exec(function() {
@@ -36,6 +36,9 @@ module.exports = {
         callback(cluster);
         
         map.on(plugin.google.maps.event.CAMERA_CHANGE, function() {
+          cluster.refresh();
+        });
+        window.addEventListener("orientationchange", function() {
           cluster.refresh();
         });
       }, function() {

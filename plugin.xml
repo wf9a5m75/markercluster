@@ -19,7 +19,8 @@
     
         <!-- plugin src files -->
         <source-file src="src/android/plugin/google/maps/PluginMarkerCluster.java" target-dir="src/plugin/google/maps" />
-        <source-file src="src/android/plugin/google/maps/MarkerCluster.java" target-dir="src/plugin/google/maps" />
+        <source-file src="src/android/plugin/google/maps/experimental/MarkerCluster.java" target-dir="src/plugin/google/maps/experimental" />
+        <source-file src="src/android/plugin/google/maps/experimental/Cluster.java" target-dir="src/plugin/google/maps/experimental" />
     </platform>
     
 </plugin>
