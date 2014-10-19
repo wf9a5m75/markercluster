@@ -1,0 +1,25 @@
+<?xml version='1.0' encoding='utf-8'?>
+<plugin id="plugin.google.maps.experimental" version="0.1" xmlns="http://apache.org/cordova/ns/plugins/1.0" xmlns:android="http://schemas.android.com/apk/res/android">
+    <name>phonegap-googlemaps-plugin-marker_cluster</name>
+    <js-module name="markercluster" src="www/marker-cluster.js">
+        <clobbers target="plugin.experimental" />
+    </js-module>
+
+    <license>Apache 2.0</license>
+    
+    
+    <!-- android -->
+    <platform name="android">
+
+        <config-file target="res/xml/config.xml" parent="/*">
+            <feature name="MarkerCluster">
+                <param name="android-package" value="plugin.google.maps.MarkerCluster" />
+            </feature>
+        </config-file>
+    
+        <!-- plugin src files -->
+        <source-file src="src/android/plugin/google/maps/PluginMarkerCluster.java" target-dir="src/plugin/google/maps" />
+        <source-file src="src/android/plugin/google/maps/MarkerCluster.java" target-dir="src/plugin/google/maps" />
+    </platform>
+    
+</plugin>
