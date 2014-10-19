@@ -35,7 +35,6 @@ public class Cluster {
   };
   
   public void addMarkerJson(JSONObject markerOptions) throws JSONException {
-
     markerOptionList.add(markerOptions);
     if (markerOptionList.size() == 1) {
       JSONArray params = new JSONArray();

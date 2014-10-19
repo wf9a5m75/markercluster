@@ -72,14 +72,12 @@ public class PluginMarkerCluster extends MyPlugin {
   @SuppressWarnings("unused")
   private void refresh(JSONArray args, CallbackContext callbackContext) throws JSONException {
     int zoom = (int) this.map.getCameraPosition().zoom;
-    
+    if (zoom != prevZoom) {
       prevZoom = zoom;
       String clusterId = args.getString(1);
       MarkerCluster cluster = (MarkerCluster) this.objects.get(clusterId);
-      if (zoom != prevZoom) {
-        cluster.clear();
-      }
       cluster.refresh();
+    }
     PluginResult result = new PluginResult(PluginResult.Status.NO_RESULT);
     callbackContext.sendPluginResult(result);
   }

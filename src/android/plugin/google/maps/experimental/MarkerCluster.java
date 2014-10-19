@@ -24,7 +24,6 @@ public class MarkerCluster {
 
   private List<JSONObject> markerOptionList = new ArrayList<JSONObject>();
   private List<LatLng> markerLatLngList = new ArrayList<LatLng>();
-  private List<Boolean> markerContainList = new ArrayList<Boolean>();
   private HashMap<String, Cluster> clusters = new HashMap<String, Cluster>();
   private GoogleMap mMap;
   private final int MIN_RESOLUTION = 1;
@@ -36,7 +35,6 @@ public class MarkerCluster {
   private final String GEOCELL_ALPHABET = "0123456789abcdef";
   private CordovaWebView mWebView = null;
   private GoogleMaps mMapCtrl;
-  private LatLngBounds viewport = null;
   
   public MarkerCluster(CordovaWebView webView, GoogleMaps mapCtrl) {
     super();
@@ -47,19 +45,6 @@ public class MarkerCluster {
     this.resolution = this.resolution < MIN_RESOLUTION ? MIN_RESOLUTION : this.resolution;
     this.resolution = this.resolution > MAX_GEOCELL_RESOLUTION ? MAX_GEOCELL_RESOLUTION : this.resolution;
     
-    updateViewport();
-    
-    
-    
-    MarkerOptions options = new MarkerOptions();
-    options.position(viewport.northeast);
-    options.title("northeast");
-    mMap.addMarker(options);
-
-    options = new MarkerOptions();
-    options.position(viewport.southwest);
-    options.title("southwest");
-    mMap.addMarker(options);
   }
   
   public void addMarkerJson(JSONObject markerOptions, LatLng markerLatLng, boolean isRefresh) throws JSONException {
@@ -70,10 +55,6 @@ public class MarkerCluster {
       double lng = position.getDouble("lng");
       markerLatLng = new LatLng(lat, lng);
       markerLatLngList.add(markerLatLng);
-      this.markerContainList.add(viewport.contains(markerLatLng));
-    }
-    if (viewport.contains(markerLatLng) == false) {
-      return;
     }
     
     //Find the nearest cluster
@@ -90,7 +71,7 @@ public class MarkerCluster {
     clusters.put(geocell, cluster);
   }
 
-  public void clear()  {
+  public void refresh() throws JSONException {
     Cluster cluster;
     String key;
     Set<String> keys = clusters.keySet();
@@ -102,18 +83,12 @@ public class MarkerCluster {
       cluster = null;
     }
     clusters.clear();
-  }
-  
-  public void refresh() throws JSONException {
     this.resolution = (int) mMap.getCameraPosition().zoom - 1;
     this.resolution = this.resolution < MIN_RESOLUTION ? MIN_RESOLUTION : this.resolution;
     this.resolution = this.resolution > MAX_GEOCELL_RESOLUTION ? MAX_GEOCELL_RESOLUTION : this.resolution;
-    updateViewport();
     
     for (int i = 0; i < markerOptionList.size(); i++) {
-      if (this.markerContainList.get(i) == false) {
-        this.addMarkerJson(markerOptionList.get(i), markerLatLngList.get(i), true);
-      }
+      this.addMarkerJson(markerOptionList.get(i), markerLatLngList.get(i), true);
     }
   }
   
@@ -162,31 +137,5 @@ public class MarkerCluster {
         (posX & 1) << 0);
     return GEOCELL_ALPHABET.substring(start, start + 1);
   }
-  
-  @SuppressWarnings("deprecation")
-  private int getScreenOrientation()
-  {
-      Display getOrient = mMapCtrl.cordova.getActivity().getWindowManager().getDefaultDisplay();
-      int orientation = Configuration.ORIENTATION_UNDEFINED;
-      if(getOrient.getWidth()==getOrient.getHeight()){
-          orientation = Configuration.ORIENTATION_SQUARE;
-      } else{ 
-          if(getOrient.getWidth() < getOrient.getHeight()){
-              orientation = Configuration.ORIENTATION_PORTRAIT;
-          }else { 
-              orientation = Configuration.ORIENTATION_LANDSCAPE;
-          }
-      }
-      return orientation;
-  }
-  private void updateViewport() {
-    viewport = mMap.getProjection().getVisibleRegion().latLngBounds;
-    // Bug patch:
-    // https://code.google.com/p/gmaps-api-issues/issues/detail?id=5285&q=getVisibleRegion&colspec=ID%20Type%20Status%20Introduced%20Fixed%20Summary%20Stars%20ApiType%20Internal
-    if (getScreenOrientation() == Configuration.ORIENTATION_LANDSCAPE) {
-      LatLng ne = new LatLng(viewport.northeast.latitude, viewport.southwest.longitude);
-      LatLng sw = new LatLng(viewport.southwest.latitude, viewport.northeast.longitude);
-      viewport = new LatLngBounds(sw, ne);
-    }
-  }
+
 }
