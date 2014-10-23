@@ -14,10 +14,8 @@ function Cluster(id) {
     writable: false
   });
   
-  self.addMarker = function(options) {
-    cordova.exec(function() {
-    }, function() {
-    }, PLUGIN_NAME, "exec", ["MarkerCluster.addMarkerJson", id, options]);
+  self.addMarker = function(options, callback) {
+    cordova.exec(callback, callback, PLUGIN_NAME, "exec", ["MarkerCluster.addMarkerJson", id, options]);
   };
   self.refresh = function() {
     cordova.exec(function() {

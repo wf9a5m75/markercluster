@@ -60,6 +60,7 @@ public class PluginMarkerCluster extends MyPlugin {
   }
   @SuppressWarnings("unused")
   private void addMarkerJson(JSONArray args, CallbackContext callbackContext) throws JSONException {
+    /*
     String clusterId = args.getString(1);
     MarkerCluster cluster = (MarkerCluster) this.objects.get(clusterId);
     
@@ -69,6 +70,9 @@ public class PluginMarkerCluster extends MyPlugin {
     
     PluginResult result = new PluginResult(PluginResult.Status.NO_RESULT);
     callbackContext.sendPluginResult(result);
+    */
+
+    callbackContext.success();
   }
   @SuppressWarnings("unused")
   private void refresh(final JSONArray args, final CallbackContext callbackContext) throws JSONException {
