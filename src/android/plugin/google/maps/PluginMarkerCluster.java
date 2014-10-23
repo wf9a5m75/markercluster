@@ -60,6 +60,7 @@ public class PluginMarkerCluster extends MyPlugin {
   }
   @SuppressWarnings("unused")
   private void addMarkerJson(JSONArray args, CallbackContext callbackContext) throws JSONException {
+    
     /*
     String clusterId = args.getString(1);
     MarkerCluster cluster = (MarkerCluster) this.objects.get(clusterId);

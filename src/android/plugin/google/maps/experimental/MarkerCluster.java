@@ -50,10 +50,6 @@ public class MarkerCluster {
   public void addMarkerJson(JSONObject markerOptions, LatLng markerLatLng, boolean isRefresh) throws JSONException {
     if (isRefresh == false) {
       markerOptionList.add(markerOptions);
-      JSONObject position = markerOptions.getJSONObject("position");
-      double lat = position.getDouble("lat");
-      double lng = position.getDouble("lng");
-      markerLatLng = new LatLng(lat, lng);
       markerLatLngList.add(markerLatLng);
     }
     
