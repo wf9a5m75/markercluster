@@ -3,6 +3,9 @@ package plugin.google.maps;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
 
 import org.apache.cordova.CallbackContext;
 import org.apache.cordova.CordovaInterface;
@@ -13,8 +16,10 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import plugin.google.maps.experimental.AsyncAddMarkerTask;
 import plugin.google.maps.experimental.MarkerCluster;
 import android.os.Handler;
+import android.util.Log;
 
 public class PluginMarkerCluster extends MyPlugin {
   private PluginMarker markerPlugin = null;
@@ -61,17 +66,29 @@ public class PluginMarkerCluster extends MyPlugin {
   @SuppressWarnings("unused")
   private void addMarkerJson(JSONArray args, CallbackContext callbackContext) throws JSONException {
     
-    /*
     String clusterId = args.getString(1);
-    MarkerCluster cluster = (MarkerCluster) this.objects.get(clusterId);
+    MarkerCluster markerCluster = (MarkerCluster) this.objects.get(clusterId);
+    JSONArray markerOptions = args.getJSONArray(2);
     
-    JSONObject markerOptions = args.getJSONObject(2);
+    AsyncAddMarkerTask asyncTask = new AsyncAddMarkerTask(markerCluster, mapCtrl) {
+      @Override
+      public  void onPostExecute(HashMap<String, List<JSONObject>> geocellHash) {
+        Log.d("GoogleMaps", "--geocellhash: " + geocellHash.size());
+        Set<String> keys = geocellHash.keySet();
+        Iterator<String> iterator = keys.iterator();
+        String geocell;
+        while(iterator.hasNext()) {
+          geocell = iterator.next();
+          Log.d("GoogleMaps",  geocell + " : " + geocellHash.get(geocell).size());
+        }
+      }
+    };
+    asyncTask.execute(markerOptions);
     
-    cluster.addMarkerJson(markerOptions, null, false);
     
     PluginResult result = new PluginResult(PluginResult.Status.NO_RESULT);
     callbackContext.sendPluginResult(result);
-    */
+    
 
     callbackContext.success();
   }
@@ -88,7 +105,7 @@ public class PluginMarkerCluster extends MyPlugin {
           try {
             String clusterId = args.getString(1);
             MarkerCluster cluster = (MarkerCluster) objects.get(clusterId);
-            cluster.refresh();
+            //cluster.refresh();
           } catch (JSONException e) {
             e.printStackTrace();
           }

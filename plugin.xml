@@ -13,7 +13,7 @@
 
         <config-file target="res/xml/config.xml" parent="/*">
             <feature name="MarkerCluster">
-                <param name="android-package" value="plugin.google.maps.MarkerCluster" />
+                <param name="android-package" value="plugin.google.maps.experimental.MarkerCluster" />
             </feature>
         </config-file>
     
