@@ -15,8 +15,6 @@ import android.os.AsyncTask;
 
 public class AsyncAddMarkerTask extends AsyncTask<JSONArray, Void, HashMap<String, List<JSONObject>>> {
 
-  private MarkerCluster mMarkerCluster;
-  private GoogleMaps mMapCtrl;
   private int resolution = 1;
   
   // The maximum *practical* geocell resolution.
@@ -24,12 +22,10 @@ public class AsyncAddMarkerTask extends AsyncTask<JSONArray, Void, HashMap<Strin
   private final int GEOCELL_GRID_SIZE = 4;
   private final String GEOCELL_ALPHABET = "0123456789abcdef";
   
-  public AsyncAddMarkerTask(MarkerCluster markerCluster, GoogleMaps mapCtrl) {
-    mMarkerCluster = markerCluster;
-    mMapCtrl = mapCtrl;
+  public AsyncAddMarkerTask(GoogleMaps mapCtrl) {
     resolution = (int) mapCtrl.map.getCameraPosition().zoom;
-    resolution = resolution < 1 ? 1 : resolution;
-    resolution = resolution > MAX_GEOCELL_RESOLUTION ? MAX_GEOCELL_RESOLUTION : resolution;
+    //resolution = resolution < 1 ? 1 : resolution;
+    //resolution = resolution > MAX_GEOCELL_RESOLUTION ? MAX_GEOCELL_RESOLUTION : resolution;
   }
 
   @Override
@@ -66,18 +62,6 @@ public class AsyncAddMarkerTask extends AsyncTask<JSONArray, Void, HashMap<Strin
     }
     return geocellHash;
   }
-  
-  /*
-  public  void onPostExecute(HashMap<String, List<JSONObject>> geocellHash) {
-    try {
-      mMarkerCluster.clear();
-    } catch (JSONException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
-    }
-    
-  }
-  */
 
   /**
    * https://code.google.com/p/geomodel/source/browse/trunk/geo/geocell.py#370

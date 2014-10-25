@@ -21,71 +21,38 @@ import com.google.android.gms.maps.model.MarkerOptions;
 
 public class Cluster {
 
-  private List<JSONObject> markerOptionList = new ArrayList<JSONObject>();
+  private List<JSONObject> markerOptionList;
   private GoogleMap mMap;
   private GoogleMaps mMapCtrl;
   private Marker clusterMarker = null;
   private CordovaWebView mWebView;
   private String firstMarkerId = null;
   
-  public Cluster(CordovaWebView webView, GoogleMaps mapCtrl) {
+  public Cluster(GoogleMaps mapCtrl, String geocell, List<JSONObject> list) {
     mMap = mapCtrl.map;
     mMapCtrl = mapCtrl;
-    mWebView = webView;
-  };
-  
-  public void addMarkerJson(JSONObject markerOptions) throws JSONException {
-    markerOptionList.add(markerOptions);
-    if (markerOptionList.size() == 1) {
-      JSONArray params = new JSONArray();
-      params.put("Marker.createMarker");
-      params.put(markerOptions);
-      this.implementToMap(params, new CallbackContext("111", mWebView) {
-        @Override
-        public void success(JSONObject message) {
-          try {
-            firstMarkerId = message.getString("id");
-          } catch (JSONException e) {
-            e.printStackTrace();
-          }
-          
-        }
-      });
-      //Log.d("GoogleMaps", markerOptions.toString(2));
-    } else {
-      if (firstMarkerId != null) {
-        JSONArray params = new JSONArray();
-        params.put("Marker.remove");
-        params.put(firstMarkerId);
-        this.implementToMap(params, new CallbackContext("222", mWebView));
-        firstMarkerId = null;
-      }
-      
-      JSONObject position = markerOptions.getJSONObject("position");
+    markerOptionList = list;
+
+    JSONObject firstMarkerOptions = list.get(0);
+
+    try {
+      MarkerOptions opts = new MarkerOptions();
+      JSONObject position = firstMarkerOptions.getJSONObject("position");
       double lat = position.getDouble("lat");
       double lng = position.getDouble("lng");
       LatLng markerLatLng = new LatLng(lat, lng);
-
-      if (clusterMarker == null) {
-        MarkerOptions opts = new MarkerOptions();
-        opts.position(markerLatLng);
+      opts.position(markerLatLng);
+      if (list.size() > 1) {
         opts.icon(BitmapDescriptorFactory.fromResource(R.drawable.m1));
         opts.anchor(0.5f, 0.5f);
-        
-        JSONObject tmpOptions = markerOptionList.get(0);
-        position = tmpOptions.getJSONObject("position");
-        lat = position.getDouble("lat");
-        lng = position.getDouble("lng");
-        LatLng markerCenter = new LatLng(lat, lng);
-        
-        clusterMarker = mMap.addMarker(opts);
-        //clusterMarker.setTitle("cluster_" + this.hashCode());
-        clusterMarker.setPosition(markerCenter);
-        
       }
-      clusterMarker.setTitle("Cnt = " + markerOptionList.size());
-    }
-  }
+      clusterMarker = mapCtrl.map.addMarker(opts);
+      clusterMarker.setTitle("Cnt = " + list.size());
+      
+    } catch (Exception e) {};
+     
+  };
+  
 
   public void remove() {
     if (firstMarkerId != null) {

@@ -17,6 +17,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import plugin.google.maps.experimental.AsyncAddMarkerTask;
+import plugin.google.maps.experimental.Cluster;
 import plugin.google.maps.experimental.MarkerCluster;
 import android.os.Handler;
 import android.util.Log;
@@ -67,18 +68,20 @@ public class PluginMarkerCluster extends MyPlugin {
   private void addMarkerJson(JSONArray args, CallbackContext callbackContext) throws JSONException {
     
     String clusterId = args.getString(1);
-    MarkerCluster markerCluster = (MarkerCluster) this.objects.get(clusterId);
+    final MarkerCluster markerCluster = (MarkerCluster) this.objects.get(clusterId);
     JSONArray markerOptions = args.getJSONArray(2);
     
-    AsyncAddMarkerTask asyncTask = new AsyncAddMarkerTask(markerCluster, mapCtrl) {
+    AsyncAddMarkerTask asyncTask = new AsyncAddMarkerTask(mapCtrl) {
       @Override
       public  void onPostExecute(HashMap<String, List<JSONObject>> geocellHash) {
         Log.d("GoogleMaps", "--geocellhash: " + geocellHash.size());
         Set<String> keys = geocellHash.keySet();
         Iterator<String> iterator = keys.iterator();
         String geocell;
+        Cluster cluster;
         while(iterator.hasNext()) {
           geocell = iterator.next();
+          cluster = new Cluster(mapCtrl, geocell, geocellHash.get(geocell));
           Log.d("GoogleMaps",  geocell + " : " + geocellHash.get(geocell).size());
         }
       }
