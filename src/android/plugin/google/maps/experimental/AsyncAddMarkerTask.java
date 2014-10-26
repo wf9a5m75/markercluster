@@ -7,11 +7,17 @@ import java.util.List;
 import java.util.Set;
 
 import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
 
-import plugin.google.maps.GoogleMaps;
+import android.graphics.Color;
 import android.os.AsyncTask;
+import android.util.Log;
+
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
+import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.PolygonOptions;
+import com.google.android.gms.maps.model.PolylineOptions;
 
 public class AsyncAddMarkerTask extends AsyncTask<JSONArray, Void, HashMap<String, List<JSONObject>>> {
 
@@ -21,11 +27,16 @@ public class AsyncAddMarkerTask extends AsyncTask<JSONArray, Void, HashMap<Strin
   private final int MAX_GEOCELL_RESOLUTION = 13;
   private final int GEOCELL_GRID_SIZE = 4;
   private final String GEOCELL_ALPHABET = "0123456789abcdef";
+  private MarkerCluster markerCluster;
+  private LatLngBounds visibleBounds;
   
-  public AsyncAddMarkerTask(GoogleMaps mapCtrl) {
-    resolution = (int) mapCtrl.map.getCameraPosition().zoom;
-    //resolution = resolution < 1 ? 1 : resolution;
-    //resolution = resolution > MAX_GEOCELL_RESOLUTION ? MAX_GEOCELL_RESOLUTION : resolution;
+  public AsyncAddMarkerTask(MarkerCluster markerCluster) {
+    this.markerCluster = markerCluster;
+    resolution = (int) markerCluster.mapCtrl.map.getCameraPosition().zoom - 1;
+    resolution = resolution < 1 ? 1 : resolution;
+    resolution = resolution > MAX_GEOCELL_RESOLUTION ? MAX_GEOCELL_RESOLUTION : resolution;
+    
+    visibleBounds = markerCluster.mapCtrl.map.getProjection().getVisibleRegion().latLngBounds;
   }
 
   @Override
@@ -35,6 +46,7 @@ public class AsyncAddMarkerTask extends AsyncTask<JSONArray, Void, HashMap<Strin
     String geocell;
     HashMap<String, List<JSONObject>> geocellHash = new HashMap<String, List<JSONObject>>();
     List<JSONObject> stacks;
+    LatLng latlng;
     
     //-------------------------------------
     // marker clustering based on geocell
@@ -47,6 +59,11 @@ public class AsyncAddMarkerTask extends AsyncTask<JSONArray, Void, HashMap<Strin
           position = markerOptions.getJSONObject("position");
           lat = position.getDouble("lat");
           lng = position.getDouble("lng");
+          latlng = new LatLng(lat, lng);
+          if (visibleBounds.contains(latlng) == false) {
+            continue;
+          }
+          
           geocell = getGeocell(lat, lng, resolution);
           if (geocellHash.containsKey(geocell) == false) {
             stacks = new ArrayList<JSONObject>();
@@ -62,7 +79,64 @@ public class AsyncAddMarkerTask extends AsyncTask<JSONArray, Void, HashMap<Strin
     }
     return geocellHash;
   }
+  
+  @Override
+  public  void onPostExecute(HashMap<String, List<JSONObject>> geocellHash) {
+    Log.d("GoogleMaps", "--geocellhash: " + geocellHash.size());
+    Set<String> keys = geocellHash.keySet();
+    Iterator<String> iterator = keys.iterator();
+    String geocell;
+    Cluster cluster;
+    LatLngBounds geocellBounds;
+    while(iterator.hasNext()) {
+      geocell = iterator.next();
+      if (this.markerCluster.clusters.containsKey(geocell)) {
+        cluster = markerCluster.clusters.get(geocell);
+        cluster.addMarkerJsonList(geocellHash.get(geocell));
+      } else {
+        geocellBounds = this.getLatLngBoundsFromGeocell(geocell);
+        cluster = new Cluster(markerCluster.mapCtrl, geocellBounds.getCenter());
+        cluster.addMarkerJsonList(geocellHash.get(geocell));
+        markerCluster.clusters.put(geocell, cluster);
+      }
+    }
+    
+    this.markerCluster.clusters.keySet();
+    
+  }
 
+  private LatLngBounds getLatLngBoundsFromGeocell(String geocell) {
+    String geoChar;
+    double north = 89.9;
+    double south = -89.9;
+    double east = 179.9;
+    double west = -179.9;
+    int pos;
+    
+    double subcell_lng_span, subcell_lat_span;
+    int x, y;
+    for (int i = 0; i < geocell.length(); i++) {
+      geoChar = geocell.substring(i, i + 1);
+      pos = GEOCELL_ALPHABET.indexOf(geoChar);
+      
+      subcell_lng_span = (east - west) / GEOCELL_GRID_SIZE;
+      subcell_lat_span = (north - south) / GEOCELL_GRID_SIZE;
+      
+      x = (int) (Math.floor(pos / 4) % 2 * 2 + pos % 2);
+      y = (int) (pos - Math.floor(pos / 4) * 4);
+      y = y >> 1;
+      y += Math.floor(pos / 4) > 1 ? 2 : 0;
+      
+      south += subcell_lat_span * y;
+      north = south + subcell_lat_span;
+
+      west += subcell_lng_span * x;
+      east = west + subcell_lng_span;
+    }
+    LatLng sw = new LatLng(south, west);
+    LatLng ne = new LatLng(north, east);
+    return new LatLngBounds(sw, ne);
+  }
   /**
    * https://code.google.com/p/geomodel/source/browse/trunk/geo/geocell.py#370
    * @param latLng
@@ -71,10 +145,10 @@ public class AsyncAddMarkerTask extends AsyncTask<JSONArray, Void, HashMap<Strin
    */
   private String getGeocell(double lat, double lng, int resolution) {
     String cell = "";
-    double north = 90.0;
-    double south = -90.0;
-    double east = 180.0;
-    double west = -180.0;
+    double north = 89.9;
+    double south = -89.9;
+    double east = 179.9;
+    double west = -179.9;
     
     double subcell_lng_span, subcell_lat_span;
     byte x, y;
@@ -106,6 +180,7 @@ public class AsyncAddMarkerTask extends AsyncTask<JSONArray, Void, HashMap<Strin
         (posX & 2) << 1 |
         (posY & 1) << 1 |
         (posX & 1) << 0);
+    
     return GEOCELL_ALPHABET.substring(start, start + 1);
   }
 }

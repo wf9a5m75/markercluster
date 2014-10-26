@@ -16,9 +16,15 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
+import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.PolygonOptions;
+
 import plugin.google.maps.experimental.AsyncAddMarkerTask;
 import plugin.google.maps.experimental.Cluster;
 import plugin.google.maps.experimental.MarkerCluster;
+import android.graphics.Color;
 import android.os.Handler;
 import android.util.Log;
 
@@ -70,30 +76,13 @@ public class PluginMarkerCluster extends MyPlugin {
     String clusterId = args.getString(1);
     final MarkerCluster markerCluster = (MarkerCluster) this.objects.get(clusterId);
     JSONArray markerOptions = args.getJSONArray(2);
+    markerCluster.setAllMarkerOptions(markerOptions);
     
-    AsyncAddMarkerTask asyncTask = new AsyncAddMarkerTask(mapCtrl) {
-      @Override
-      public  void onPostExecute(HashMap<String, List<JSONObject>> geocellHash) {
-        Log.d("GoogleMaps", "--geocellhash: " + geocellHash.size());
-        Set<String> keys = geocellHash.keySet();
-        Iterator<String> iterator = keys.iterator();
-        String geocell;
-        Cluster cluster;
-        while(iterator.hasNext()) {
-          geocell = iterator.next();
-          cluster = new Cluster(mapCtrl, geocell, geocellHash.get(geocell));
-          Log.d("GoogleMaps",  geocell + " : " + geocellHash.get(geocell).size());
-        }
-      }
-    };
+    AsyncAddMarkerTask asyncTask = new AsyncAddMarkerTask(markerCluster);
     asyncTask.execute(markerOptions);
-    
     
     PluginResult result = new PluginResult(PluginResult.Status.NO_RESULT);
     callbackContext.sendPluginResult(result);
-    
-
-    callbackContext.success();
   }
   @SuppressWarnings("unused")
   private void refresh(final JSONArray args, final CallbackContext callbackContext) throws JSONException {
@@ -102,16 +91,20 @@ public class PluginMarkerCluster extends MyPlugin {
 
       @Override
       public void run() {
-        int zoom = (int) map.getCameraPosition().zoom;
-        if (zoom != prevZoom) {
-          prevZoom = zoom;
-          try {
-            String clusterId = args.getString(1);
-            MarkerCluster cluster = (MarkerCluster) objects.get(clusterId);
-            //cluster.refresh();
-          } catch (JSONException e) {
-            e.printStackTrace();
+        try {
+          int zoom = (int) mapCtrl.map.getCameraPosition().zoom;
+          String clusterId = args.getString(1);
+          MarkerCluster markerCluster = (MarkerCluster) objects.get(clusterId);
+          if (prevZoom != zoom) {
+            markerCluster.clear();
+            prevZoom = zoom;
           }
+          
+          AsyncAddMarkerTask asyncTask = new AsyncAddMarkerTask(markerCluster);
+          asyncTask.execute(markerCluster.getAllMarkerOptions());
+          
+        } catch (JSONException e) {
+          e.printStackTrace();
         }
         PluginResult result = new PluginResult(PluginResult.Status.NO_RESULT);
         callbackContext.sendPluginResult(result);
