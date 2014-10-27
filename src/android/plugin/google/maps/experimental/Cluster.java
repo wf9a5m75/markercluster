@@ -28,6 +28,7 @@ public class Cluster {
   private Marker clusterMarker = null;
   private CordovaWebView mWebView;
   private LatLng centerLatLng = null;
+  private Bitmap currentIconBitmap = null;
   
   public Cluster(GoogleMaps mapCtrl) {
     this.mapCtrl = mapCtrl;
@@ -72,7 +73,8 @@ public class Cluster {
         markerId = cnt > 100 ? R.drawable.m4 : markerId;
         markerId = cnt > 200 ? R.drawable.m5 : markerId;
         Bitmap iconBitmap = BitmapFactory.decodeResource(mapCtrl.cordova.getActivity().getResources(), markerId);
-        Canvas iconCanvas = new Canvas(iconBitmap);
+        currentIconBitmap = iconBitmap.copy(Bitmap.Config.ARGB_8888, true);
+        Canvas iconCanvas = new Canvas(currentIconBitmap);
         
         String txt = "" + markerHash.size();
         Paint paint = new Paint();
@@ -82,7 +84,7 @@ public class Cluster {
         int xPos = (int) ((iconCanvas.getWidth() - txtWidth) / 2);
         int yPos = (int) ((iconCanvas.getHeight() / 2) - ((paint.descent() + paint.ascent()) / 2)) ; 
         iconCanvas.drawText(txt, xPos, yPos, paint);
-        opts.icon(BitmapDescriptorFactory.fromBitmap(iconBitmap));
+        opts.icon(BitmapDescriptorFactory.fromBitmap(currentIconBitmap));
         opts.anchor(0.5f, 0.5f);
       } else {
         JSONObject options = markerOption.options;
@@ -98,6 +100,9 @@ public class Cluster {
   }
   
   public void remove() {
+    if (currentIconBitmap != null) {
+      currentIconBitmap.recycle();
+    }
     if (clusterMarker != null) {
       clusterMarker.remove();
       clusterMarker = null;
