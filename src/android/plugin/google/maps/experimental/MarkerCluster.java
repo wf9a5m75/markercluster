@@ -1,18 +1,20 @@
 package plugin.google.maps.experimental;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 
 import org.apache.cordova.CordovaWebView;
-import org.json.JSONArray;
 import org.json.JSONException;
 
 import plugin.google.maps.GoogleMaps;
+import android.graphics.Bitmap;
 
 public class MarkerCluster {
 
-  private JSONArray allMarkerOptionList;
+  private List<MarkerJsonData> allMarkerOptionList;
   public HashMap<String, Cluster> clusters = new HashMap<String, Cluster>();
   
   public CordovaWebView mWebView = null;
@@ -22,11 +24,16 @@ public class MarkerCluster {
     this.mWebView = webView;
     this.mapCtrl = mapCtrl;
   }
+  
 
-  public void setAllMarkerOptions(JSONArray allMarkerOption) {
-    allMarkerOptionList = allMarkerOption;
+  public void setAllMarkerOptions(List<MarkerJsonData> allMarkerOption) {
+    if (allMarkerOptionList == null) {
+      allMarkerOptionList = allMarkerOption;
+    } else {
+      allMarkerOptionList.addAll(allMarkerOption);
+    }
   }
-  public JSONArray getAllMarkerOptions() {
+  public List<MarkerJsonData> getAllMarkerOptions() {
     return allMarkerOptionList;
   }
   
@@ -43,4 +50,5 @@ public class MarkerCluster {
     }
     clusters.clear();
   }
+
 }
