@@ -19,6 +19,9 @@ plugin.google.maps.experimental.MarkerCluster.createCluster(map, function(cluste
 });
 ```
 
+- `plugin.google.maps.experimental.MarkerCluster.createCluster` returns a new cluster instance.
+- `cluster.addMarkers` accepts an array of the options of [map.addMarker()](https://github.com/wf9a5m75/phonegap-googlemaps-plugin/wiki/Marker). **Do not pass the marker instance.**
+
 
 ###Example
 ```js
