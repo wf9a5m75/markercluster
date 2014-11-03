@@ -63,7 +63,9 @@ public class Cluster {
     }
 
     if (markerHashSize == 1) {
-      clusterMarker.remove();
+      if (clusterMarker != null) {
+        clusterMarker.remove();
+      }
       markerHashSize = 0;
     }
     
