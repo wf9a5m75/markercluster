@@ -104,9 +104,8 @@ public class Cluster {
         JSONObject options = markerOption.options;
         JSONArray args = new JSONArray();
         args.put("Marker.createMarker");
+        args.put(options);
         try {
-          options.put("title", clusterMarkerId);
-          args.put(options);
           mapCtrl.execute("exec", args, new CallbackContext(null, mWebView) {
             public void sendPluginResult(PluginResult pluginResult) {
               try {
