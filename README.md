@@ -38,3 +38,6 @@ plugin.google.maps.experimental.MarkerCluster.createCluster(map, function(cluste
   });
 });
 ```
+
+###Demo
+http://youtu.be/5PfPKpcQpiM
