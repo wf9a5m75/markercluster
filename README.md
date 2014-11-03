@@ -4,6 +4,12 @@
 markercluster
 =============
 
+###How to install?
+```bash
+$> cordova plugin add plugin.google.maps --variable ...
+$> cordova plugin add https://github.com/wf9a5m75/markercluster
+```
+
 ###How to use?
 ```js
 plugin.google.maps.experimental.MarkerCluster.createCluster(map, function(cluster) {
