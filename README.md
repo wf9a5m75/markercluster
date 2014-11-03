@@ -41,3 +41,6 @@ plugin.google.maps.experimental.MarkerCluster.createCluster(map, function(cluste
 
 ###Demo
 http://youtu.be/5PfPKpcQpiM
+
+###Demo APK
+https://googledrive.com/host/0B1ECfqTCcLE8SHVUX25xcmNIUTQ/markercluster_demo_20141102.apk
