@@ -24,6 +24,7 @@ plugin.google.maps.experimental.MarkerCluster.createCluster(map, function(cluste
 
 
 ###Example
+(This demo uses [async.js](https://github.com/caolan/async) library. You can find it under the `example/www/js/` directory.)
 ```js
 plugin.google.maps.experimental.MarkerCluster.createCluster(map, function(cluster) {
   async.map(data.photos, function(info, next) {
