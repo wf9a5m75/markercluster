@@ -2,6 +2,7 @@ Notices:
 - **This is a beta version. Not product level.**
 - **It's still very unstable. The behavior is not guaranteed.**
 - **Please note that the specification may change without prior notice.**
+- **Currently there is Android version only, but I will develop for iOS version**
 
 markercluster
 =============
