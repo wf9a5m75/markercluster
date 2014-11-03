@@ -1,19 +1,25 @@
 package plugin.google.maps.experimental;
 
+import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
+import org.apache.cordova.CallbackContext;
 import org.apache.cordova.CordovaWebView;
+import org.apache.cordova.PluginResult;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import plugin.google.maps.GoogleMaps;
+import plugin.google.maps.PluginMarker;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.util.Log;
 
 import com.example.myapp.R;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
@@ -29,10 +35,14 @@ public class Cluster {
   private CordovaWebView mWebView;
   private LatLng centerLatLng = null;
   private Bitmap currentIconBitmap = null;
+  private String markerId = null;
+  private String clusterMarkerId = null;
+  private CallbackContext callbackContext;
   
-  public Cluster(GoogleMaps mapCtrl) {
+  public Cluster(GoogleMaps mapCtrl, CallbackContext callbackContext) {
     this.mapCtrl = mapCtrl;
-    
+    this.mWebView = mapCtrl.webView;
+    this.callbackContext = callbackContext;
   }
   
   public void addMarkerJsonList(List<MarkerJsonData> list) {
@@ -62,6 +72,7 @@ public class Cluster {
       int jsonHash = iterator2.next();
       markerOption = markerHash.get(jsonHash);
       centerLatLng = markerOption.position;
+      clusterMarkerId = markerOption.getMarkerId();
       
       MarkerOptions opts = new MarkerOptions();
       opts.position(centerLatLng);
@@ -86,20 +97,64 @@ public class Cluster {
         iconCanvas.drawText(txt, xPos, yPos, paint);
         opts.icon(BitmapDescriptorFactory.fromBitmap(currentIconBitmap));
         opts.anchor(0.5f, 0.5f);
+        clusterMarker = mapCtrl.map.addMarker(opts);
       } else {
         JSONObject options = markerOption.options;
+        JSONArray args = new JSONArray();
+        args.put("Marker.createMarker");
         try {
-          String title = options.getString("title");
-          opts.title(title);
+          options.put("title", clusterMarkerId);
+          args.put(options);
+          mapCtrl.execute("exec", args, new CallbackContext(null, mWebView) {
+            public void sendPluginResult(PluginResult pluginResult) {
+              try {
+                if (pluginResult.getMessageType() == PluginResult.MESSAGE_TYPE_JSON) {
+                  JSONObject result = new JSONObject(pluginResult.getMessage());
+                  Cluster.this.markerId = result.getString("id");
+                  result.put("action", "bind");
+                  result.put("clusterMarkerId", clusterMarkerId);
+                  pluginResult = new PluginResult(PluginResult.Status.OK, result);
+                  pluginResult.setKeepCallback(true);
+                  callbackContext.sendPluginResult(pluginResult);
+                }
+              } catch (JSONException e) {
+                e.printStackTrace();
+              }
+            }
+          });
         } catch (JSONException e) {
           e.printStackTrace();
         }
       }
-      clusterMarker = mapCtrl.map.addMarker(opts);
     }
   }
   
   public void remove() {
+    if (markerId != null) {
+      JSONArray args = new JSONArray();
+      args.put("Marker.remove");
+      args.put(markerId);
+      try {
+        mapCtrl.execute("exec", args, new CallbackContext(null, mWebView) {
+          public void sendPluginResult(PluginResult pluginResult) {
+            JSONObject result = new JSONObject();
+            try {
+              result.put("action", "unbind");
+              result.put("clusterMarkerId", clusterMarkerId);
+              result.put("id", markerId);
+            } catch (JSONException e) {
+              e.printStackTrace();
+            }
+            pluginResult = new PluginResult(PluginResult.Status.OK, result);
+            pluginResult.setKeepCallback(true);
+            callbackContext.sendPluginResult(pluginResult);
+          }
+        });
+      } catch (JSONException e) {
+        e.printStackTrace();
+      }
+      
+    }
     if (currentIconBitmap != null) {
       currentIconBitmap.recycle();
     }

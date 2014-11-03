@@ -91,12 +91,14 @@ public class PluginMarkerCluster extends MyPlugin {
     if (currentTask != null) {
       currentTask.cancel(true);
     }
-    AsyncCluster asyncTask = new AsyncCluster(markerCluster);
+    AsyncCluster asyncTask = new AsyncCluster(markerCluster, callbackContext);
     asyncTask.execute(markerJsonList.toArray(new MarkerJsonData[]{}));
     currentTask = asyncTask;
-    
+    /*
     PluginResult result = new PluginResult(PluginResult.Status.NO_RESULT);
+    result.setKeepCallback(true);
     callbackContext.sendPluginResult(result);
+    */
   }
   @SuppressWarnings("unused")
   private void refresh(final JSONArray args, final CallbackContext callbackContext) throws JSONException {
@@ -122,6 +124,9 @@ public class PluginMarkerCluster extends MyPlugin {
           
           String clusterId = args.getString(1);
           MarkerCluster markerCluster = (MarkerCluster) objects.get(clusterId);
+          if (markerCluster == null) {
+            return;
+          }
           if (prevZoom != zoom) {
             markerCluster.clear();
             prevZoom = zoom;
@@ -130,7 +135,7 @@ public class PluginMarkerCluster extends MyPlugin {
           if (currentTask != null) {
             currentTask.cancel(true);
           }
-          AsyncCluster asyncTask = new AsyncCluster(markerCluster);
+          AsyncCluster asyncTask = new AsyncCluster(markerCluster, callbackContext);
           asyncTask.execute(markerCluster.getAllMarkerOptions().toArray(new MarkerJsonData[]{}));
           currentTask = asyncTask;
           
@@ -138,6 +143,7 @@ public class PluginMarkerCluster extends MyPlugin {
           e.printStackTrace();
         }
         PluginResult result = new PluginResult(PluginResult.Status.NO_RESULT);
+        result.setKeepCallback(true);
         callbackContext.sendPluginResult(result);
       }
       

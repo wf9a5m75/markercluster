@@ -15,6 +15,7 @@ public class MarkerJsonData {
   public JSONObject options;
   public Point point;
   private String[] geocells;
+  private String markerId;
   
   public MarkerJsonData(JSONObject markerOptions) {
     options = markerOptions;
@@ -33,10 +34,20 @@ public class MarkerJsonData {
     } catch (JSONException e) {
       e.printStackTrace();
     }
+    
+    try {
+      markerId = markerOptions.getString("id");
+    } catch (JSONException e) {
+      e.printStackTrace();
+    }
   }
   
   public String getGeocell(int zoom) {
     zoom = Math.min(zoom, geocells.length - 1);
     return this.geocells[zoom];
+  }
+  
+  public String getMarkerId() {
+    return markerId;
   }
 }
