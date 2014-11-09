@@ -32,7 +32,6 @@ import android.os.Handler;
 import android.util.Log;
 
 public class PluginMarkerCluster extends MyPlugin {
-  private PluginMarker markerPlugin = null;
   private int prevZoom = -1;
   private String prevGeocells = "";
   private CordovaWebView mWebView;
@@ -51,26 +50,6 @@ public class PluginMarkerCluster extends MyPlugin {
     this.objects.put(clusterId, cluster);
     if (prevZoom < 0) {
       prevZoom = (int) this.map.getCameraPosition().zoom;
-    }
-    
-    if (markerPlugin == null) {
-      try {
-        Field field = mapCtrl.getClass().getDeclaredField("plugins");
-        field.setAccessible(true);
-        HashMap<String, PluginEntry> plugins = (HashMap<String, PluginEntry>) field.get(mapCtrl);
-        if (plugins.containsKey("Marker") == false) {
-          Method loadPlugin = mapCtrl.getClass().getDeclaredMethod("loadPlugin", String.class);
-          loadPlugin.setAccessible(true);
-          loadPlugin.invoke(mapCtrl, "Marker");
-          plugins = (HashMap<String, PluginEntry>) field.get(mapCtrl);
-        }
-        PluginEntry pluginEntry = plugins.get("Marker");
-        markerPlugin = (PluginMarker) pluginEntry.plugin;
-      } catch (Exception e) {
-        e.printStackTrace();
-        callbackContext.error(e.getMessage());
-        return;
-      }
     }
     
     callbackContext.success(clusterId);
