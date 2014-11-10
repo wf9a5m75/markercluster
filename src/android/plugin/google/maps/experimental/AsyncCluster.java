@@ -23,7 +23,7 @@ public class AsyncCluster extends AsyncTask<MarkerJsonData, Void, HashMap<String
   private HashMap<String, CellLocation> geocellLocations = new HashMap<String, CellLocation>();
 
   public static final int MAX_GEOCELL_RESOLUTION = 13;
-  private MarkerCluster markerCluster;
+  private MarkerClusterManager markerCluster;
   private LatLngBounds visibleBounds;
   private Projection projection;
   private float density;
@@ -31,7 +31,7 @@ public class AsyncCluster extends AsyncTask<MarkerJsonData, Void, HashMap<String
   private TimingLogger logger;
   private CallbackContext callbackContext;
   
-  public AsyncCluster(MarkerCluster markerCluster, CallbackContext callbackContext) {
+  public AsyncCluster(MarkerClusterManager markerCluster, CallbackContext callbackContext) {
     logger = new TimingLogger("Marker", "testTimingLogger");
     
     this.markerCluster = markerCluster;

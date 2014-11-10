@@ -24,7 +24,7 @@ import com.google.android.gms.maps.model.PolygonOptions;
 
 import plugin.google.maps.experimental.AsyncCluster;
 import plugin.google.maps.experimental.Cluster;
-import plugin.google.maps.experimental.MarkerCluster;
+import plugin.google.maps.experimental.MarkerClusterManager;
 import plugin.google.maps.experimental.MarkerClusterUtil;
 import plugin.google.maps.experimental.MarkerJsonData;
 import android.graphics.Color;
@@ -45,7 +45,7 @@ public class PluginMarkerCluster extends MyPlugin {
   
   @SuppressWarnings({ "unused", "unchecked" })
   private void createMarkerCluster(JSONArray args, CallbackContext callbackContext) throws JSONException {
-    MarkerCluster cluster = new MarkerCluster(this.mWebView, mapCtrl);
+    MarkerClusterManager cluster = new MarkerClusterManager(this.mWebView, mapCtrl);
     String clusterId = "cluster_" + cluster.hashCode();
     this.objects.put(clusterId, cluster);
     if (prevZoom < 0) {
@@ -58,7 +58,7 @@ public class PluginMarkerCluster extends MyPlugin {
   private void addMarkerJson(JSONArray args, CallbackContext callbackContext) throws JSONException {
     
     String clusterId = args.getString(1);
-    final MarkerCluster markerCluster = (MarkerCluster) this.objects.get(clusterId);
+    final MarkerClusterManager markerCluster = (MarkerClusterManager) this.objects.get(clusterId);
     JSONArray markerOptions = args.getJSONArray(2);
     List<MarkerJsonData> markerJsonList = new ArrayList<MarkerJsonData>();
     for (int i = 0; i < markerOptions.length(); i++) {
@@ -102,7 +102,7 @@ public class PluginMarkerCluster extends MyPlugin {
           prevGeocells = currentGeocells;
           
           String clusterId = args.getString(1);
-          MarkerCluster markerCluster = (MarkerCluster) objects.get(clusterId);
+          MarkerClusterManager markerCluster = (MarkerClusterManager) objects.get(clusterId);
           if (markerCluster == null) {
             return;
           }

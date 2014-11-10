@@ -25,5 +25,24 @@
         <source-file src="src/android/plugin/google/maps/experimental/MarkerClusterUtil.java" target-dir="src/plugin/google/maps/experimental" />
         <source-file src="src/android/plugin/google/maps/experimental/MarkerJsonData.java" target-dir="src/plugin/google/maps/experimental" />
     </platform>
-    
+
+    <platform name="ios">
+        <config-file target="config.xml" parent="/*">
+            <feature name="GoogleMaps">
+                <param name="ios-package" value="MarkerCluster" />
+            </feature>
+        </config-file>
+        <header-file src="src/ios/PluginMarkerCluster.h" />
+        <source-file src="src/ios/PluginMarkerCluster.m" />
+        <header-file src="src/ios/experimental/MarkerCluster.h" />
+        <source-file src="src/ios/experimental/MarkerCluster.m" />
+        <!--<header-file src="src/ios/experimental/Cluster.h" />
+        <source-file src="src/ios/experimental/Cluster.m" />
+        <header-file src="src/ios/experimental/AsyncCluster.h" />
+        <source-file src="src/ios/experimental/AsyncCluster.m" />-->
+        <header-file src="src/ios/experimental/MarkerClusterUtil.h" />
+        <source-file src="src/ios/experimental/MarkerClusterUtil.m" />
+        <header-file src="src/ios/experimental/MarkerJsonData.h" />
+        <source-file src="src/ios/experimental/MarkerJsonData.m" />
+    </platform>    
 </plugin>
