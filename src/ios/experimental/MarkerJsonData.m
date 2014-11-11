@@ -19,12 +19,11 @@ NSString *markerId;
     
     NSObject *positionJson = [markerOptions valueForKey:@"position"];
     if (positionJson) {
-      self.latitude = [NSNumber numberWithDouble: [[positionJson valueForKey:@"lat"] doubleValue]];
-      self.longitude = [NSNumber numberWithDouble: [[positionJson valueForKey:@"lng"] doubleValue]];
+      self.position = CLLocationCoordinate2DMake([[positionJson valueForKey:@"lat"] doubleValue], [[positionJson valueForKey:@"lng"] doubleValue]);
       
       for (int i = 0; i < MAX_GEOCELL_RESOLUTION; i++) {
         [geocellList addObject:[MarkerClusterUtil
-                                      getGeocell:[self.latitude doubleValue] lng:[self.longitude doubleValue] resolution:i]];
+                                      getGeocell:self.position.latitude lng:self.position.longitude resolution:i]];
       }
       self.geocells = [geocellList copy];
     }

@@ -7,6 +7,7 @@
 //
 
 #import <Foundation/Foundation.h>
+#import <CoreLocation/CoreLocation.h>
 #import "MarkerClusterUtil.h"
 #define MAX_GEOCELL_RESOLUTION (13)
 
@@ -17,8 +18,7 @@
 @interface MarkerJsonData : NSObject
 @property (nonatomic, strong) NSObject *options;
 @property (nonatomic, strong) NSMutableArray *geocells;
-@property (nonatomic, strong) NSNumber *latitude;
-@property (nonatomic, strong) NSNumber *longitude;
+@property (nonatomic, nonatomic) CLLocationCoordinate2D position;
 
 - (id)initWithOptions:(NSObject *) markerOptions;
 - (NSString *)getGeocell:(int) zoom;

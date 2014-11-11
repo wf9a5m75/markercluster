@@ -7,11 +7,9 @@ import java.util.List;
 
 import org.apache.cordova.CallbackContext;
 
-import plugin.google.maps.PluginMarker;
 import android.content.res.Resources;
 import android.graphics.Point;
 import android.os.AsyncTask;
-import android.util.TimingLogger;
 
 import com.google.android.gms.maps.Projection;
 import com.google.android.gms.maps.model.LatLng;
@@ -28,11 +26,9 @@ public class AsyncCluster extends AsyncTask<MarkerJsonData, Void, HashMap<String
   private Projection projection;
   private float density;
   private float clusterDistance = 0;
-  private TimingLogger logger;
   private CallbackContext callbackContext;
   
   public AsyncCluster(MarkerClusterManager markerCluster, CallbackContext callbackContext) {
-    logger = new TimingLogger("Marker", "testTimingLogger");
     
     this.markerCluster = markerCluster;
     this.callbackContext = callbackContext;
@@ -79,7 +75,6 @@ public class AsyncCluster extends AsyncTask<MarkerJsonData, Void, HashMap<String
     Point cellPoint, clusterPoint;
     CellLocation cellLoc, clusterLoc;
 
-    logger.addSplit("createCell ");
     //-------------------------------------
     // marker clustering based on geocell
     //-------------------------------------
@@ -109,7 +104,6 @@ public class AsyncCluster extends AsyncTask<MarkerJsonData, Void, HashMap<String
       }
     }
 
-    logger.addSplit("cluster optimize");
     Iterator<String> iterator;
     String[] geocells = geocellLocations.keySet().toArray(new String[]{});
     LatLngBounds unionCellBounds;
@@ -180,7 +174,6 @@ public class AsyncCluster extends AsyncTask<MarkerJsonData, Void, HashMap<String
   
   @Override
   public void onPostExecute(HashMap<String, List<MarkerJsonData>> geocellHash) {
-    logger.addSplit("onPost");
     String geocell;
     Cluster cluster;
     String[] geocells = markerCluster.clusters.keySet().toArray(new String[]{});
@@ -192,7 +185,6 @@ public class AsyncCluster extends AsyncTask<MarkerJsonData, Void, HashMap<String
       }
     }
     
-    logger.addSplit("addClusters");
     Iterator<String> iterator = geocellHash.keySet().iterator();
     while(iterator.hasNext()) {
       geocell = iterator.next();
@@ -206,7 +198,6 @@ public class AsyncCluster extends AsyncTask<MarkerJsonData, Void, HashMap<String
       }
     }
     
-    logger.dumpToLog();
   }
 
   

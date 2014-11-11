@@ -10,6 +10,7 @@
 #import "MyPlgunProtocol.h"
 #import "MarkerClusterManager.h"
 #import "MarkerJsonData.h"
+#import "CellLocation.h"
 #import "MarkerClusterUtil.h"
 
 @interface MarkerCluster : CDVPlugin<MyPlgunProtocol>
