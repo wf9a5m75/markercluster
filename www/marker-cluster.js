@@ -122,6 +122,9 @@ module.exports = {
         callback(null);
       }, PLUGIN_NAME, "exec", ["MarkerCluster.createMarkerCluster"]);
       
+    },
+    "_onClusterEventForIOS": function(clusterId, action, result) {
+      cordova.exec(null, null, PLUGIN_NAME, "exec", ["MarkerCluster._onClusterEventForIOS", clusterId, action, result]);
     }
   }
 };

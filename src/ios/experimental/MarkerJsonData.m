@@ -9,9 +9,8 @@
 #import "MarkerJsonData.h"
 
 @implementation MarkerJsonData
-NSString *markerId;
 
-- (id)initWithOptions:(NSObject *) markerOptions {
+- (id)initWithOptions:(NSDictionary *) markerOptions {
   if(self == [super init]) {
     self.options = markerOptions;
     
@@ -28,7 +27,7 @@ NSString *markerId;
       self.geocells = [geocellList copy];
     }
     
-    markerId = [markerOptions valueForKey:@"id"];
+    self.markerId = [markerOptions valueForKey:@"id"];
   }
   return self;
 }
@@ -39,6 +38,6 @@ NSString *markerId;
 }
 
 - (NSString *)getMarkerId {
-  return markerId;
+  return self.markerId;
 }
 @end

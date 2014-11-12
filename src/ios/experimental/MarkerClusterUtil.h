@@ -17,4 +17,5 @@
 + (NSObject *)getLatLngBoundsFromGeocell:(NSString *) geocell;
 + (NSString *)getGeocell:(double) lat lng:(double)lng resolution:(int)resolution;
 + (NSString *)_subdiv_char:(int) posX posY:(int)posY;
++ (NSArray *)getKeys:(NSMapTable *) hashMap;
 @end

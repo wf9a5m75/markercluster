@@ -102,5 +102,14 @@ const int GEOCELL_GRID_SIZE = 4;
   
   return [GEOCELL_ALPHABET substringWithRange:NSMakeRange(start, 1)];
 }
++ (NSArray *)getKeys:(NSMapTable *) hashMap {
+  NSEnumerator *enumulator = [hashMap keyEnumerator];
+  NSMutableArray *keys = [NSMutableArray array];
+  NSString *key;
+  while ((key = [enumulator nextObject])) {
+    [keys addObject:key];
+  }
+  return keys;
+}
 
 @end

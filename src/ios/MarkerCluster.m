@@ -15,6 +15,7 @@ int prevZoom = -1;
 {
   NSLog(@"---setGoogelMapsViewController");
   self.mapCtrl = viewCtrl;
+  self.clusters = [[NSMapTable alloc] init];
 }
 
 - (void)createMarkerCluster:(CDVInvokedUrlCommand*)command {
@@ -30,6 +31,12 @@ int prevZoom = -1;
   [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
 }
 
+- (void)_onClusterEventForIOS:(CDVInvokedUrlCommand*)command {
+  
+  NSString *clusterObjId = [command.arguments objectAtIndex:1];
+  Cluster *cluster = (Cluster *)[self.mapCtrl.overlayManager objectForKey:clusterObjId];
+  [cluster _onClusterEventForIOS:command];
+}
 
 - (void)addMarkerJson:(CDVInvokedUrlCommand*)command {
   NSString *clusterId = [command.arguments objectAtIndex:1];
@@ -37,11 +44,11 @@ int prevZoom = -1;
 
   NSArray *markerOptions = [command.arguments objectAtIndex:2];
   NSMutableArray *markerJsonList = [NSMutableArray array];
-  NSObject *markerOption;
- 
-  for (int i = 0; i < [markerOptions count]; i++) {
-    markerOption = [markerOptions objectAtIndex:i];
-    [markerJsonList addObject:[[MarkerJsonData alloc] initWithOptions:markerOption]];
+  
+  for (int i = 0; i < markerOptions.count; i++) {
+    NSObject *markerOption = [markerOptions objectAtIndex:i];
+    MarkerJsonData *jsonData = [[MarkerJsonData alloc] initWithOptions:markerOption];
+    [markerJsonList addObject: jsonData];
   }
   
   [markerCluster setAllMarkerOptions:markerJsonList];
@@ -50,7 +57,9 @@ int prevZoom = -1;
 }
 
 - (void)_asyncCluster:(MarkerClusterManager *)markerCluster markerJsons:(NSArray *)markerJsons command:(CDVInvokedUrlCommand*)command{
-  __block int clusterDistance = 40;
+  UIScreen *mainScreen = [UIScreen mainScreen];
+  __block float screenScale = mainScreen.scale;
+  __block int clusterDistance = (int)(60.0f * screenScale);
   int zoom = self.mapCtrl.map.camera.zoom;
   zoom = zoom - 1;
   __block int resolution = zoom < 1 ? 1 : zoom;
@@ -65,15 +74,14 @@ int prevZoom = -1;
       GMSCoordinateBounds *visibleBounds = [[GMSCoordinateBounds alloc] initWithRegion: visibleRegion];
 
       
-      MarkerJsonData *markerOptions;
       NSString *geocell;
       CLLocationCoordinate2D latLng;
       NSMutableArray *stacks;
       CellLocation *cellLoc;
       
-      for (int j = 0; j < [markerJsons count]; j++) {
-        markerOptions = [markerJsons objectAtIndex:j];
-        geocell = [markerOptions.geocells objectAtIndex:j];
+      for (int j = 0; j < markerJsons.count; j++) {
+        MarkerJsonData *markerOptions = [markerJsons objectAtIndex:j];
+        geocell = [markerOptions.geocells objectAtIndex:resolution];
         latLng = markerOptions.position;
         if ([visibleBounds containsCoordinate:latLng] == NO) {
           continue;
@@ -93,12 +101,11 @@ int prevZoom = -1;
         [geocellHash setObject:stacks forKey:geocell];
       }
       
-      NSLog(@"%@", geocellHash);
     });
   });
+  
   dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-    NSEnumerator *locationsEnumerator = [geocellLocations keyEnumerator];
-    NSEnumerator *locationsEnumerator2;
+    NSArray *geocells = [MarkerClusterUtil getKeys:geocellLocations];
     
     NSMapTable *unionCells;
     GMSMutablePath *unionCellBounds;
@@ -106,11 +113,14 @@ int prevZoom = -1;
     NSString *geocell, *clusterCell;
     CellLocation *cellLoc, *clusterLoc;
     CGPoint cellPoint, clusterPoint;
-    CLLocationCoordinate2D *latLng;
+    CLLocationCoordinate2D southWest, northEast;
+    GMSCoordinateBounds *bounds;
+    NSArray *locations;
     
     while (needRetry) {
       needRetry = NO;
-      while ((geocell = [locationsEnumerator nextObject])) {
+      for (int k1 = 0; k1 < geocells.count; k1++) {
+        geocell = [geocells objectAtIndex:k1];
         if ([geocellLocations objectForKey:geocell] == nil) {
           continue;
         }
@@ -119,18 +129,20 @@ int prevZoom = -1;
         
         unionCellBounds = nil;
         unionCells = nil;
-        locationsEnumerator2 = [geocellLocations keyEnumerator];
-        while ((clusterCell = [locationsEnumerator2 nextObject])) {
+        locations = [MarkerClusterUtil getKeys:geocellLocations];
+        
+        for (int k2 = 0; k2 < locations.count; k2++) {
+          clusterCell = [locations objectAtIndex:k2];
           if ([clusterCell isEqualToString:geocell]) {
             continue;
           }
           clusterLoc = [geocellLocations objectForKey:geocell];
           clusterPoint = clusterLoc.point;
           
-          if (cellPoint.x >= clusterPoint.x - clusterDistance &&
-              cellPoint.x <= clusterPoint.x + clusterDistance &&
-              cellPoint.y >= clusterPoint.y - clusterDistance &&
-              cellPoint.y <= clusterPoint.y + clusterDistance) {
+          if (cellPoint.x >= (float)(clusterPoint.x - clusterDistance) &&
+              cellPoint.x <= (float)(clusterPoint.x + clusterDistance) &&
+              cellPoint.y >= (float)(clusterPoint.y - clusterDistance) &&
+              cellPoint.y <= (float)(clusterPoint.y + clusterDistance)) {
             if (unionCellBounds == nil) {
               unionCellBounds = [[GMSMutablePath alloc] init];
               [unionCellBounds addCoordinate:cellLoc.latLng];
@@ -145,74 +157,64 @@ int prevZoom = -1;
         }
         
         if (unionCells != nil) {
-          latLng = unionCellBounds
+          bounds = [[GMSCoordinateBounds alloc] initWithPath:unionCellBounds];
+          southWest = bounds.southWest;
+          northEast = bounds.northEast;
+          
+          double centerLat = (southWest.latitude + northEast.latitude) / 2;
+          double swLng = southWest.longitude;
+          double neLng = northEast.longitude;
+          double sumLng = swLng + neLng;
+          double centerLng = sumLng / 2;
+          
+          if ((swLng > 0 && neLng < 0 && swLng < 180)) {
+            centerLat += sumLng > 0 ? -180 : 180;
+          }
+          clusterCell = [MarkerClusterUtil getGeocell:centerLat lng:centerLng resolution:resolution];
+          NSMutableArray *buffer = [NSMutableArray array];
+          NSEnumerator *keys3 = [unionCells keyEnumerator];
+          while((geocell = [keys3 nextObject])) {
+            [geocellLocations removeObjectForKey:geocell];
+            [geocellHash removeObjectForKey:geocell];
+            [buffer addObjectsFromArray:[unionCells objectForKey:geocell]];
+          }
+          needRetry = YES;
+          [geocellHash setObject:buffer forKey:clusterCell];
         }
       }
+      geocells = [MarkerClusterUtil getKeys:geocellHash];
     }
+    
   });
   
-  /*
-  
-    Iterator<String> iterator;
-    boolean needRetry = true;
-    while (needRetry) {
-      needRetry = false;
-      for (i = 0; i < geocells.length; i++) {
-        geocell = geocells[i];
-        if (geocellLocations.containsKey(geocell) == false) {
-          continue;
-        }
-        cellLoc = geocellLocations.get(geocell);
-        cellPoint = cellLoc.point;
-        
-        unionCellBounds = null;
-        unionCells = null;
-        iterator = geocellLocations.keySet().iterator();
-        while (iterator.hasNext()) {
-          clusterCell = iterator.next();
-          if (clusterCell.equals(geocell)) {
-            continue;
-          }
-          clusterLoc = geocellLocations.get(clusterCell);
-          clusterPoint = clusterLoc.point;
-          if (cellPoint.x >= clusterPoint.x - clusterDistance &&
-              cellPoint.x <= clusterPoint.x + clusterDistance &&
-              cellPoint.y >= clusterPoint.y - clusterDistance &&
-              cellPoint.y <= clusterPoint.y + clusterDistance) {
-            
-            if (unionCellBounds == null) {
-              LatLngBounds.Builder builder = new LatLngBounds.Builder();
-              builder.include(clusterLoc.latLng);
-              builder.include(cellLoc.latLng);
-              unionCellBounds = builder.build();
-              
-              unionCells = new HashMap<String, List<MarkerJsonData>>();
-              unionCells.put(geocell, geocellHash.get(geocell));
-            }
-            unionCells.put(clusterCell, geocellHash.get(clusterCell));
-            unionCellBounds.including(clusterLoc.latLng);
-          }
-        }
-        
-        if (unionCells != null) {
-          latLng = unionCellBounds.getCenter();
-          clusterCell = MarkerClusterUtil.getGeocell(latLng.latitude, latLng.longitude, resolution);
-  
-          List<MarkerJsonData> buffer = new ArrayList<MarkerJsonData>();
-          iterator = unionCells.keySet().iterator();
-          while(iterator.hasNext()) {
-            geocell = iterator.next();
-            geocellLocations.remove(geocell);
-            geocellHash.remove(geocell);
-            buffer.addAll(unionCells.get(geocell));
-          }
-  
-          needRetry = true;
-          geocellHash.put(clusterCell, buffer);
+  dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+    dispatch_sync(dispatch_get_main_queue(), ^{
+      NSString *geocell;
+      
+      Cluster *cluster;
+      NSEnumerator *keys = [self.clusters keyEnumerator];
+      while((geocell = [keys nextObject])) {
+        if ([geocellHash objectForKey:geocell] == nil) {
+          cluster = [self.clusters objectForKey:geocell];
+          [cluster remove];
+          [self.clusters removeObjectForKey:geocell];
+          cluster = nil;
         }
       }
-      geocells = geocellHash.keySet().toArray(new String[]{});
-    }
-  */
+      {
+        NSLog(@"geocellHash=%@", geocellHash);
+      keys = [geocellHash keyEnumerator];
+      while ((geocell = [keys nextObject]))
+        if ([self.clusters objectForKey:geocell]) {
+          cluster = [self.clusters objectForKey:geocell];
+          [cluster addMarkerJsonList:[geocellHash objectForKey:geocell]];
+        } else {
+          cluster = [[Cluster alloc] initWithOptions:self.mapCtrl commandDelegate:self.commandDelegate command:command];
+          [cluster addMarkerJsonList:[geocellHash objectForKey:geocell]];
+          [self.clusters setObject:cluster forKey:geocell];
+        }
+      }
+    });
+  });
 }
 @end

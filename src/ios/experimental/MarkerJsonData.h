@@ -16,9 +16,11 @@
 #endif
 
 @interface MarkerJsonData : NSObject
-@property (nonatomic, strong) NSObject *options;
+@property (nonatomic, strong) NSDictionary *options;
 @property (nonatomic, strong) NSMutableArray *geocells;
+@property (nonatomic, strong) NSString *markerId;
 @property (nonatomic, nonatomic) CLLocationCoordinate2D position;
+
 
 - (id)initWithOptions:(NSObject *) markerOptions;
 - (NSString *)getGeocell:(int) zoom;

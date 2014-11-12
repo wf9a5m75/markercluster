@@ -12,10 +12,13 @@
 #import "MarkerJsonData.h"
 #import "CellLocation.h"
 #import "MarkerClusterUtil.h"
+#import "Cluster.h"
 
 @interface MarkerCluster : CDVPlugin<MyPlgunProtocol>
 @property (nonatomic, strong) GoogleMapsViewController* mapCtrl;
+@property (nonatomic, strong) NSMapTable* clusters;
 
 - (void)createMarkerCluster:(CDVInvokedUrlCommand*)command;
 - (void)addMarkerJson:(CDVInvokedUrlCommand*)command;
+- (void)_onClusterEventForIOS:(CDVInvokedUrlCommand*)command;
 @end

@@ -1,6 +1,5 @@
 package plugin.google.maps.experimental;
 
-import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -13,13 +12,11 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import plugin.google.maps.GoogleMaps;
-import plugin.google.maps.PluginMarker;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
-import android.util.Log;
 
 import com.example.myapp.R;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
@@ -69,63 +66,65 @@ public class Cluster {
       markerHashSize = 0;
     }
     
-    if (markerHashSize == 0) {
-      Iterator<Integer> iterator2 = markerHash.keySet().iterator();
-      int jsonHash = iterator2.next();
-      markerOption = markerHash.get(jsonHash);
-      centerLatLng = markerOption.position;
-      clusterMarkerId = markerOption.getMarkerId();
+    if (markerHashSize != 0) {
+      return;
+    }
+    
+    Iterator<Integer> iterator2 = markerHash.keySet().iterator();
+    int jsonHash = iterator2.next();
+    markerOption = markerHash.get(jsonHash);
+    centerLatLng = markerOption.position;
+    clusterMarkerId = markerOption.getMarkerId();
+    
+    MarkerOptions opts = new MarkerOptions();
+    opts.position(centerLatLng);
+    if (list.size() > 1) {
+      int markerId = R.drawable.m1;
+      cnt = markerHash.size();
+      markerId = cnt > 20 ? R.drawable.m2 : markerId;
+      markerId = cnt > 50 ? R.drawable.m3 : markerId;
+      markerId = cnt > 100 ? R.drawable.m4 : markerId;
+      markerId = cnt > 200 ? R.drawable.m5 : markerId;
+      Bitmap iconBitmap = BitmapFactory.decodeResource(mapCtrl.cordova.getActivity().getResources(), markerId);
+      currentIconBitmap = iconBitmap.copy(Bitmap.Config.ARGB_8888, true);
+      Canvas iconCanvas = new Canvas(currentIconBitmap);
       
-      MarkerOptions opts = new MarkerOptions();
-      opts.position(centerLatLng);
-      if (list.size() > 1) {
-        int markerId = R.drawable.m1;
-        cnt = markerHash.size();
-        markerId = cnt > 20 ? R.drawable.m2 : markerId;
-        markerId = cnt > 50 ? R.drawable.m3 : markerId;
-        markerId = cnt > 100 ? R.drawable.m4 : markerId;
-        markerId = cnt > 200 ? R.drawable.m5 : markerId;
-        Bitmap iconBitmap = BitmapFactory.decodeResource(mapCtrl.cordova.getActivity().getResources(), markerId);
-        currentIconBitmap = iconBitmap.copy(Bitmap.Config.ARGB_8888, true);
-        Canvas iconCanvas = new Canvas(currentIconBitmap);
-        
-        String txt = "" + markerHash.size();
-        Paint paint = new Paint();
-        paint.setColor(Color.WHITE);
-        paint.setTextSize(20);
-        float txtWidth = paint.measureText(txt, 0, txt.length());
-        int xPos = (int) ((iconCanvas.getWidth() - txtWidth) / 2);
-        int yPos = (int) ((iconCanvas.getHeight() / 2) - ((paint.descent() + paint.ascent()) / 2)) ; 
-        iconCanvas.drawText(txt, xPos, yPos, paint);
-        opts.icon(BitmapDescriptorFactory.fromBitmap(currentIconBitmap));
-        opts.anchor(0.5f, 0.5f);
-        clusterMarker = mapCtrl.map.addMarker(opts);
-      } else {
-        JSONObject options = markerOption.options;
-        JSONArray args = new JSONArray();
-        args.put("Marker.createMarker");
-        args.put(options);
-        try {
-          mapCtrl.execute("exec", args, new CallbackContext(null, mWebView) {
-            public void sendPluginResult(PluginResult pluginResult) {
-              try {
-                if (pluginResult.getMessageType() == PluginResult.MESSAGE_TYPE_JSON) {
-                  JSONObject result = new JSONObject(pluginResult.getMessage());
-                  Cluster.this.markerId = result.getString("id");
-                  result.put("action", "bind");
-                  result.put("clusterMarkerId", clusterMarkerId);
-                  pluginResult = new PluginResult(PluginResult.Status.OK, result);
-                  pluginResult.setKeepCallback(true);
-                  callbackContext.sendPluginResult(pluginResult);
-                }
-              } catch (JSONException e) {
-                e.printStackTrace();
+      String txt = "" + markerHash.size();
+      Paint paint = new Paint();
+      paint.setColor(Color.WHITE);
+      paint.setTextSize(20);
+      float txtWidth = paint.measureText(txt, 0, txt.length());
+      int xPos = (int) ((iconCanvas.getWidth() - txtWidth) / 2);
+      int yPos = (int) ((iconCanvas.getHeight() / 2) - ((paint.descent() + paint.ascent()) / 2)) ; 
+      iconCanvas.drawText(txt, xPos, yPos, paint);
+      opts.icon(BitmapDescriptorFactory.fromBitmap(currentIconBitmap));
+      opts.anchor(0.5f, 0.5f);
+      clusterMarker = mapCtrl.map.addMarker(opts);
+    } else {
+      JSONObject options = markerOption.options;
+      JSONArray args = new JSONArray();
+      args.put("Marker.createMarker");
+      args.put(options);
+      try {
+        mapCtrl.execute("exec", args, new CallbackContext(null, mWebView) {
+          public void sendPluginResult(PluginResult pluginResult) {
+            try {
+              if (pluginResult.getMessageType() == PluginResult.MESSAGE_TYPE_JSON) {
+                JSONObject result = new JSONObject(pluginResult.getMessage());
+                Cluster.this.markerId = result.getString("id");
+                result.put("action", "bind");
+                result.put("clusterMarkerId", clusterMarkerId);
+                pluginResult = new PluginResult(PluginResult.Status.OK, result);
+                pluginResult.setKeepCallback(true);
+                callbackContext.sendPluginResult(pluginResult);
               }
+            } catch (JSONException e) {
+              e.printStackTrace();
             }
-          });
-        } catch (JSONException e) {
-          e.printStackTrace();
-        }
+          }
+        });
+      } catch (JSONException e) {
+        e.printStackTrace();
       }
     }
   }
