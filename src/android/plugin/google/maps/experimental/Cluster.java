@@ -32,7 +32,6 @@ public class Cluster {
   private Marker clusterMarker = null;
   private CordovaWebView mWebView;
   private LatLng centerLatLng = null;
-  private Bitmap currentIconBitmap = null;
   private String markerId = null;
   private String clusterMarkerId = null;
   private CallbackContext callbackContext;
@@ -82,28 +81,21 @@ public class Cluster {
     opts.position(centerLatLng);
     if (list.size() > 1) {
       cnt = list.size();
-      ClusterIcon icon, matchIcon = null;
+      ClusterIcon icon;
+      ClusterIcon matchIcon = icons[0];
       for (int i = 0; i < icons.length; i++) {
         icon = icons[i];
         if (cnt <= icon.maxCnt) {
           matchIcon = icon;
-          Log.d("Marker",  list.size() + " <= " + icon.maxCnt + " -> " + i);
+          Log.d("Marker",  list.size() + " <= " + icon.maxCnt + " -> " + icon.iconFilePath);
           break;
         }
       }
-      if (matchIcon == null) {
-        return;
-      }
-      if (matchIcon.iconData == null) {
-        return;
-      }
-      if (currentIconBitmap != null) {
-        currentIconBitmap.recycle();
-      }
-      this.onIconUpdate();
-      /*
-      currentIconBitmap = BitmapFactory.decodeByteArray(matchIcon.iconData, 0, matchIcon.iconData.length);
-      Canvas iconCanvas = new Canvas(currentIconBitmap);
+      
+      Bitmap tmpBmp = BitmapFactory.decodeFile(matchIcon.iconFilePath);
+      Bitmap iconBitmap = tmpBmp.copy(Bitmap.Config.ARGB_8888, true);
+      Canvas iconCanvas = new Canvas(iconBitmap);
+      tmpBmp.recycle();
       
       String txt = "" + markerHash.size();
       Paint paint = new Paint();
@@ -113,10 +105,10 @@ public class Cluster {
       int xPos = (int) ((iconCanvas.getWidth() - txtWidth) / 2);
       int yPos = (int) ((iconCanvas.getHeight() / 2) - ((paint.descent() + paint.ascent()) / 2)) ; 
       iconCanvas.drawText(txt, xPos, yPos, paint);
-      opts.icon(BitmapDescriptorFactory.fromBitmap(currentIconBitmap));
+      opts.icon(BitmapDescriptorFactory.fromBitmap(iconBitmap));
       opts.anchor(0.5f, 0.5f);
       clusterMarker = mapCtrl.map.addMarker(opts);
-      */
+      iconBitmap.recycle();
     } else {
       JSONObject options = markerOption.options;
       JSONArray args = new JSONArray();
@@ -147,9 +139,6 @@ public class Cluster {
   }
   
   public void remove() {
-    if (this.currentIconBitmap != null) {
-      currentIconBitmap.recycle();
-    }
     if (markerId != null) {
       JSONArray args = new JSONArray();
       args.put("Marker.remove");
@@ -175,49 +164,10 @@ public class Cluster {
       }
       
     }
-    if (currentIconBitmap != null) {
-      currentIconBitmap.recycle();
-    }
     if (clusterMarker != null) {
       clusterMarker.remove();
       clusterMarker = null;
     }
   }
 
-  public void onIconUpdate() {
-    if (this.icons != null && this.currentIconBitmap == null) {
-      int cnt = markerHash.size();
-      ClusterIcon icon, matchIcon = null;
-      for (int i = 0; i < icons.length; i++) {
-        icon = icons[i];
-        if (cnt <= icon.maxCnt) {
-          matchIcon = icon;
-        }
-      }
-      Bitmap iconBmp = BitmapFactory.decodeByteArray(matchIcon.iconData, 0, matchIcon.iconData.length);
-      this.currentIconBitmap = iconBmp.copy(Bitmap.Config.ARGB_8888, true);
-      iconBmp.recycle();
-      Canvas iconCanvas = new Canvas(currentIconBitmap);
-      
-      String txt = "" + markerHash.size();
-      Paint paint = new Paint();
-      paint.setColor(Color.WHITE);
-      paint.setTextSize(20);
-      float txtWidth = paint.measureText(txt, 0, txt.length());
-      int xPos = (int) ((iconCanvas.getWidth() - txtWidth) / 2);
-      int yPos = (int) ((iconCanvas.getHeight() / 2) - ((paint.descent() + paint.ascent()) / 2)) ; 
-      iconCanvas.drawText(txt, xPos, yPos, paint);
-      
-      BitmapDescriptor bitmapDiscriptor = BitmapDescriptorFactory.fromBitmap(currentIconBitmap);
-      if (clusterMarker == null) {
-        MarkerOptions opts = new MarkerOptions();
-        opts.position(centerLatLng);
-        opts.icon(bitmapDiscriptor);
-        opts.anchor(0.5f, 0.5f);
-        clusterMarker = mapCtrl.map.addMarker(opts);
-      } else {
-        clusterMarker.setIcon(bitmapDiscriptor);
-      }
-    }
-  }
 }

@@ -17,10 +17,9 @@ public class MarkerClusterManager {
   public GoogleMaps mapCtrl;
   public ClusterIcon[] icons;
   
-  public MarkerClusterManager(CordovaWebView webView, GoogleMaps mapCtrl, ClusterIcon[] icons) {
+  public MarkerClusterManager(CordovaWebView webView, GoogleMaps mapCtrl) {
     this.mWebView = webView;
     this.mapCtrl = mapCtrl;
-    this.icons = icons;
   }
   
 

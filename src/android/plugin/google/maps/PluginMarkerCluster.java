@@ -1,6 +1,8 @@
 package plugin.google.maps;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -93,37 +95,56 @@ public class PluginMarkerCluster extends MyPlugin {
     } else {
     */
     final double startTime = System.currentTimeMillis();
-    AsyncTask<Void, Void, ClusterIcon[]> task = new AsyncTask<Void, Void, ClusterIcon[]>() {
+    final MarkerClusterManager clusterManager = new MarkerClusterManager(this.mWebView, mapCtrl);
+    final String CLUSTER_ID = "cluster_" + clusterManager.hashCode();
+    AsyncTask<String[][], Void, ClusterIcon[]> task = new AsyncTask<String[][], Void, ClusterIcon[]>() {
 
       @Override
-      protected ClusterIcon[] doInBackground(Void... arg0) {
-        ClusterIcon[] icons = new ClusterIcon[5];
-        for (int i = 0; i < DEFAULT_CLUSTER_ICONS.length; i++) {
+      protected ClusterIcon[] doInBackground(String[][]... params) {
+        ClusterIcon[] icons = new ClusterIcon[params[0].length];
+        File cacheDir = cordova.getActivity().getCacheDir();
+        File cacheIcon;
+        String cacheDirPath = cacheDir.getAbsolutePath();
+        for (int i = 0; i < params[0].length; i++) {
+          cacheIcon = new File(cacheDirPath, CLUSTER_ID + params[0][i][0] + ".png");
+          if (cacheIcon.exists() == false) {
+            try {
+              Bitmap bitmap1 = PluginUtil.getBitmapFromBase64encodedImage(params[0][i][1]);
+              Bitmap bitmap2 = PluginUtil.scaleBitmapForDevice(bitmap1);
+              byte[] buffer = getBytesFromBitmap(bitmap2);
+              FileOutputStream fileOutputStream = new FileOutputStream(cacheIcon);
+              fileOutputStream.write(buffer);
+              fileOutputStream.flush();
+              fileOutputStream.close();
+              bitmap1.recycle();
+              bitmap2.recycle();
+            } catch (Exception e) {
+              e.printStackTrace();
+            }
+          }
+          
           ClusterIcon icon = new ClusterIcon();
-          icon.maxCnt = Integer.valueOf(DEFAULT_CLUSTER_ICONS[i][0]);
-          Bitmap bitmap = PluginUtil.getBitmapFromBase64encodedImage(DEFAULT_CLUSTER_ICONS[i][1]);
-          bitmap = PluginUtil.scaleBitmapForDevice(bitmap);
-          icon.iconData = getBytesFromBitmap(bitmap);
+          icon.maxCnt = Integer.valueOf(params[0][i][0]);
+          icon.iconFilePath = cacheIcon.getAbsolutePath();
           icons[i] = icon;
         }
         return icons;
       }
       
       @Override
-      protected void onPostExecute(ClusterIcon[] icons) {
-        double endTime = System.currentTimeMillis();
-        Log.d("Marker", "createIcons = " + ((endTime - startTime) / (double)1000));
-        
-        MarkerClusterManager cluster = new MarkerClusterManager(PluginMarkerCluster.this.mWebView, mapCtrl, icons);
-        String clusterId = "cluster_" + cluster.hashCode();
-        PluginMarkerCluster.this.objects.put(clusterId, cluster);
+      public void onPostExecute(ClusterIcon[] icons) {
+        clusterManager.icons = icons;
+        PluginMarkerCluster.this.objects.put(CLUSTER_ID, clusterManager);
         if (prevZoom < 0) {
           prevZoom = (int) PluginMarkerCluster.this.map.getCameraPosition().zoom;
         }
-        callbackContext.success(clusterId);
+        callbackContext.success(CLUSTER_ID);
+      
+        double endTime = System.currentTimeMillis();
+        Log.d("Marker", "createIcons = " + ((endTime - startTime) / (double)1000));
       }
     };
-    task.execute();
+    task.execute(DEFAULT_CLUSTER_ICONS);
     
   }
   
