@@ -17,8 +17,9 @@ import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.util.Log;
 
-import com.example.myapp.R;
+import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
@@ -35,16 +36,17 @@ public class Cluster {
   private String markerId = null;
   private String clusterMarkerId = null;
   private CallbackContext callbackContext;
+  private ClusterIcon[] icons;
   
-  public Cluster(GoogleMaps mapCtrl, CallbackContext callbackContext) {
+  public Cluster(GoogleMaps mapCtrl, ClusterIcon[] icons, CallbackContext callbackContext) {
     this.mapCtrl = mapCtrl;
     this.mWebView = mapCtrl.webView;
     this.callbackContext = callbackContext;
+    this.icons = icons;
   }
   
   public void addMarkerJsonList(List<MarkerJsonData> list) {
     int markerHashSize = markerHash.size();
-    
     MarkerJsonData markerOption;
     Iterator<MarkerJsonData> iterator = list.iterator();
     int cnt = 0;
@@ -65,7 +67,7 @@ public class Cluster {
       }
       markerHashSize = 0;
     }
-    
+
     if (markerHashSize != 0) {
       return;
     }
@@ -79,14 +81,28 @@ public class Cluster {
     MarkerOptions opts = new MarkerOptions();
     opts.position(centerLatLng);
     if (list.size() > 1) {
-      int markerId = R.drawable.m1;
-      cnt = markerHash.size();
-      markerId = cnt > 20 ? R.drawable.m2 : markerId;
-      markerId = cnt > 50 ? R.drawable.m3 : markerId;
-      markerId = cnt > 100 ? R.drawable.m4 : markerId;
-      markerId = cnt > 200 ? R.drawable.m5 : markerId;
-      Bitmap iconBitmap = BitmapFactory.decodeResource(mapCtrl.cordova.getActivity().getResources(), markerId);
-      currentIconBitmap = iconBitmap.copy(Bitmap.Config.ARGB_8888, true);
+      cnt = list.size();
+      ClusterIcon icon, matchIcon = null;
+      for (int i = 0; i < icons.length; i++) {
+        icon = icons[i];
+        if (cnt <= icon.maxCnt) {
+          matchIcon = icon;
+          Log.d("Marker",  list.size() + " <= " + icon.maxCnt + " -> " + i);
+          break;
+        }
+      }
+      if (matchIcon == null) {
+        return;
+      }
+      if (matchIcon.iconData == null) {
+        return;
+      }
+      if (currentIconBitmap != null) {
+        currentIconBitmap.recycle();
+      }
+      this.onIconUpdate();
+      /*
+      currentIconBitmap = BitmapFactory.decodeByteArray(matchIcon.iconData, 0, matchIcon.iconData.length);
       Canvas iconCanvas = new Canvas(currentIconBitmap);
       
       String txt = "" + markerHash.size();
@@ -100,6 +116,7 @@ public class Cluster {
       opts.icon(BitmapDescriptorFactory.fromBitmap(currentIconBitmap));
       opts.anchor(0.5f, 0.5f);
       clusterMarker = mapCtrl.map.addMarker(opts);
+      */
     } else {
       JSONObject options = markerOption.options;
       JSONArray args = new JSONArray();
@@ -130,6 +147,9 @@ public class Cluster {
   }
   
   public void remove() {
+    if (this.currentIconBitmap != null) {
+      currentIconBitmap.recycle();
+    }
     if (markerId != null) {
       JSONArray args = new JSONArray();
       args.put("Marker.remove");
@@ -161,6 +181,43 @@ public class Cluster {
     if (clusterMarker != null) {
       clusterMarker.remove();
       clusterMarker = null;
+    }
+  }
+
+  public void onIconUpdate() {
+    if (this.icons != null && this.currentIconBitmap == null) {
+      int cnt = markerHash.size();
+      ClusterIcon icon, matchIcon = null;
+      for (int i = 0; i < icons.length; i++) {
+        icon = icons[i];
+        if (cnt <= icon.maxCnt) {
+          matchIcon = icon;
+        }
+      }
+      Bitmap iconBmp = BitmapFactory.decodeByteArray(matchIcon.iconData, 0, matchIcon.iconData.length);
+      this.currentIconBitmap = iconBmp.copy(Bitmap.Config.ARGB_8888, true);
+      iconBmp.recycle();
+      Canvas iconCanvas = new Canvas(currentIconBitmap);
+      
+      String txt = "" + markerHash.size();
+      Paint paint = new Paint();
+      paint.setColor(Color.WHITE);
+      paint.setTextSize(20);
+      float txtWidth = paint.measureText(txt, 0, txt.length());
+      int xPos = (int) ((iconCanvas.getWidth() - txtWidth) / 2);
+      int yPos = (int) ((iconCanvas.getHeight() / 2) - ((paint.descent() + paint.ascent()) / 2)) ; 
+      iconCanvas.drawText(txt, xPos, yPos, paint);
+      
+      BitmapDescriptor bitmapDiscriptor = BitmapDescriptorFactory.fromBitmap(currentIconBitmap);
+      if (clusterMarker == null) {
+        MarkerOptions opts = new MarkerOptions();
+        opts.position(centerLatLng);
+        opts.icon(bitmapDiscriptor);
+        opts.anchor(0.5f, 0.5f);
+        clusterMarker = mapCtrl.map.addMarker(opts);
+      } else {
+        clusterMarker.setIcon(bitmapDiscriptor);
+      }
     }
   }
 }

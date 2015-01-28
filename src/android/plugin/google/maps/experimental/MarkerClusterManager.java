@@ -1,9 +1,7 @@
 package plugin.google.maps.experimental;
 
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
 
 import org.apache.cordova.CordovaWebView;
 import org.json.JSONException;
@@ -17,10 +15,12 @@ public class MarkerClusterManager {
   
   public CordovaWebView mWebView = null;
   public GoogleMaps mapCtrl;
+  public ClusterIcon[] icons;
   
-  public MarkerClusterManager(CordovaWebView webView, GoogleMaps mapCtrl) {
+  public MarkerClusterManager(CordovaWebView webView, GoogleMaps mapCtrl, ClusterIcon[] icons) {
     this.mWebView = webView;
     this.mapCtrl = mapCtrl;
+    this.icons = icons;
   }
   
 

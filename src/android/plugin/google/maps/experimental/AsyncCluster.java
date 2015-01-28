@@ -10,6 +10,7 @@ import org.apache.cordova.CallbackContext;
 import android.content.res.Resources;
 import android.graphics.Point;
 import android.os.AsyncTask;
+import android.util.TimingLogger;
 
 import com.google.android.gms.maps.Projection;
 import com.google.android.gms.maps.model.LatLng;
@@ -74,7 +75,8 @@ public class AsyncCluster extends AsyncTask<MarkerJsonData, Void, HashMap<String
     LatLng latLng;
     Point cellPoint, clusterPoint;
     CellLocation cellLoc, clusterLoc;
-
+    
+    TimingLogger logger = new TimingLogger("Marker", "testTimingLogger");
     //-------------------------------------
     // marker clustering based on geocell
     //-------------------------------------
@@ -103,6 +105,7 @@ public class AsyncCluster extends AsyncTask<MarkerJsonData, Void, HashMap<String
         e.printStackTrace();
       }
     }
+    logger.addSplit("step1");
 
     Iterator<String> iterator;
     String[] geocells = geocellLocations.keySet().toArray(new String[]{});
@@ -168,6 +171,8 @@ public class AsyncCluster extends AsyncTask<MarkerJsonData, Void, HashMap<String
       }
       geocells = geocellHash.keySet().toArray(new String[]{});
     }
+    logger.addSplit("step2");
+    logger.dumpToLog();
 
     return geocellHash;
   }
@@ -192,7 +197,7 @@ public class AsyncCluster extends AsyncTask<MarkerJsonData, Void, HashMap<String
         cluster = markerCluster.clusters.get(geocell);
         cluster.addMarkerJsonList(geocellHash.get(geocell));
       } else {
-        cluster = new Cluster(markerCluster.mapCtrl, callbackContext);
+        cluster = new Cluster(markerCluster.mapCtrl, markerCluster.icons, callbackContext);
         cluster.addMarkerJsonList(geocellHash.get(geocell));
         markerCluster.clusters.put(geocell, cluster);
       }

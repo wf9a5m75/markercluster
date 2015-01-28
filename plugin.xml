@@ -24,6 +24,7 @@
         <source-file src="src/android/plugin/google/maps/experimental/AsyncCluster.java" target-dir="src/plugin/google/maps/experimental" />
         <source-file src="src/android/plugin/google/maps/experimental/MarkerClusterUtil.java" target-dir="src/plugin/google/maps/experimental" />
         <source-file src="src/android/plugin/google/maps/experimental/MarkerJsonData.java" target-dir="src/plugin/google/maps/experimental" />
+        <source-file src="src/android/plugin/google/maps/experimental/ClusterIcon.java" target-dir="src/plugin/google/maps/experimental" />
     </platform>
 
     <platform name="ios">

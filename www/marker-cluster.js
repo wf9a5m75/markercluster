@@ -106,7 +106,13 @@ function Cluster(clusterId) {
 
 module.exports = {
   "MarkerCluster": {
-    "createCluster": function(map, callback) {
+    "createCluster": function(map, options, callback) {
+      if (typeof options === "function") {
+        callback = options;
+        options = undefined;
+      }
+      options = options || {};
+      
       cordova.exec(function(clusterId) {
         var cluster = new Cluster(clusterId);
         clusters.push(cluster);
@@ -120,7 +126,7 @@ module.exports = {
         });
       }, function() {
         callback(null);
-      }, PLUGIN_NAME, "exec", ["MarkerCluster.createMarkerCluster"]);
+      }, PLUGIN_NAME, "exec", ["MarkerCluster.createMarkerCluster", options]);
       
     },
     "_onClusterEventForIOS": function(clusterId, action, result) {
