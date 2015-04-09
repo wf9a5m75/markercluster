@@ -8,11 +8,12 @@
     <script src="js/jquery.min.js"></script>
     <script type="text/javascript" src="cordova.js"></script>
     <script type="text/javascript" src="test.json"></script>
+    <script type="text/javascript" src="js/jquery.min.js"></script>
     <script type="text/javascript" src="js/async.js"></script>
     <script type="text/javascript">
     $(document).on('deviceready', function() {
+
       var map = plugin.google.maps.Map.getMap($("#map_canvas")[0]);
-      
       plugin.google.maps.experimental.MarkerCluster.createCluster(map, function(cluster) {
         async.map(data.photos, function(info, next) {
           next(null, {

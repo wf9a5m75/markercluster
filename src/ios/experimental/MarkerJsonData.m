@@ -33,7 +33,7 @@
 }
 
 - (NSString *)getGeocell:(int) zoom {
-  zoom = MIN(zoom, [self.geocells count] - 1);
+  zoom = MIN(zoom, (int)[self.geocells count] - 1);
   return [self.geocells objectAtIndex:zoom];
 }
 

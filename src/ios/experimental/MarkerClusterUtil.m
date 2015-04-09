@@ -26,7 +26,7 @@ const int GEOCELL_GRID_SIZE = 4;
   for (int i = 0; i < [geocell length]; i++) {
     geoChar = [geocell substringWithRange:NSMakeRange(i, 1)];
     range = [GEOCELL_ALPHABET rangeOfString:geoChar];
-    pos = range.location;
+    pos = (int)range.location;
     
     subcell_lng_span = (east - west) / GEOCELL_GRID_SIZE;
     subcell_lat_span = (north - south) / GEOCELL_GRID_SIZE;

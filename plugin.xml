@@ -43,6 +43,10 @@
         <source-file src="src/ios/experimental/AsyncCluster.m" />-->
         <header-file src="src/ios/experimental/MarkerClusterUtil.h" />
         <source-file src="src/ios/experimental/MarkerClusterUtil.m" />
+        <header-file src="src/ios/experimental/Cluster.h" />
+        <source-file src="src/ios/experimental/Cluster.m" />
+        <header-file src="src/ios/experimental/CellLocation.h" />
+        <source-file src="src/ios/experimental/CellLocation.m" />
         <header-file src="src/ios/experimental/MarkerJsonData.h" />
         <source-file src="src/ios/experimental/MarkerJsonData.m" />
     </platform>    
