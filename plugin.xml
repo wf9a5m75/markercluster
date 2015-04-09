@@ -19,7 +19,7 @@
     
         <!-- plugin src files -->
         <source-file src="src/android/plugin/google/maps/PluginMarkerCluster.java" target-dir="src/plugin/google/maps" />
-        <source-file src="src/android/plugin/google/maps/experimental/MarkerCluster.java" target-dir="src/plugin/google/maps/experimental" />
+        <source-file src="src/android/plugin/google/maps/experimental/MarkerClusterManager.java" target-dir="src/plugin/google/maps/experimental" />
         <source-file src="src/android/plugin/google/maps/experimental/Cluster.java" target-dir="src/plugin/google/maps/experimental" />
         <source-file src="src/android/plugin/google/maps/experimental/AsyncCluster.java" target-dir="src/plugin/google/maps/experimental" />
         <source-file src="src/android/plugin/google/maps/experimental/MarkerClusterUtil.java" target-dir="src/plugin/google/maps/experimental" />
@@ -33,10 +33,10 @@
                 <param name="ios-package" value="MarkerCluster" />
             </feature>
         </config-file>
-        <header-file src="src/ios/PluginMarkerCluster.h" />
-        <source-file src="src/ios/PluginMarkerCluster.m" />
-        <header-file src="src/ios/experimental/MarkerCluster.h" />
-        <source-file src="src/ios/experimental/MarkerCluster.m" />
+        <header-file src="src/ios/MarkerCluster.h" />
+        <source-file src="src/ios/MarkerCluster.m" />
+        <header-file src="src/ios/experimental/MarkerClusterManager.h" />
+        <source-file src="src/ios/experimental/MarkerClusterManager.m" />
         <!--<header-file src="src/ios/experimental/Cluster.h" />
         <source-file src="src/ios/experimental/Cluster.m" />
         <header-file src="src/ios/experimental/AsyncCluster.h" />
